@@ -1,7 +1,60 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
-const Movie = ({item}) => {
-      const [like, setLike] = useState(false);
+import { UserAuth } from "../context/AuthContext";
+import { db } from "../firebase";
+import { arrayUnion, doc, updateDoc } from "firebase/firestore";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const Movie = ({ item }) => {
+  const [like, setLike] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const {user} = UserAuth();
+
+  const movieID = doc(db, 'users', `${user?.email}`)
+
+  const saveShow = async() => {
+    // check if user is logged in
+    if(user?.email){
+      setLike(!like);
+      setSaved(true);
+      notifySaved();
+      // to update documents in firebase, use arrayUnion
+      // everything needs to have an associated id
+      await updateDoc(movieID, {
+        savedShows: arrayUnion({
+          id: item.id,
+          title: item.title,
+          img: item.backdrop_path
+        })
+      })
+    } else {
+      notifySaveError();
+    }
+  }
+
+  const notifySaved = () =>
+    toast.success("Saved!", {
+      position: "top-right",
+      autoClose: 1500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+    });
+  const notifySaveError = () =>
+    toast.warn("Please Log in or Sign Up to save", {
+      position: "top-right",
+      autoClose: 1500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+    });
   return (
     <div className="w-[160px] sm:w-[200px] md:w-[240px] lg:w-[280px] inline-block cursor-pointer relative p-2">
       <img
@@ -12,7 +65,7 @@ const Movie = ({item}) => {
         <p className="white-space-normal text-xs md:text-sm font-bold flex justify-center items-center h-full">
           {item?.title}
         </p>
-        <p>
+        <p onClick={saveShow}>
           {like ? (
             <FaHeart className="absolute top-4 left-4 text-primaryColor" />
           ) : (
@@ -20,8 +73,9 @@ const Movie = ({item}) => {
           )}
         </p>
       </div>
+      <ToastContainer/>
     </div>
   );
-}
+};
 
-export default Movie
+export default Movie;

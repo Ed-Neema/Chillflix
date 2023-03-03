@@ -4,7 +4,7 @@ import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 
 import Movie from "./Movie";
 
-const Row = ({ title, fetchURL, rowID }) => {
+const Row = ({ title, fetchURL }) => {
   //rowID = for the slider to know which row needs to slide
   const [movies, setMovies] = useState([]);
 
